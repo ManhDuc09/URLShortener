@@ -1,9 +1,9 @@
 package models
 
 type ShortURL struct {
-	ID          int
-	OriginalURL string
-	ShortCode   string
-	UserID      int
-	Clicks      int
+    ID          uint   `gorm:"primaryKey;autoIncrement"`
+    OriginalURL string `gorm:"not null"`
+    ShortCode   string `gorm:"uniqueIndex;not null"`
+    UserID      int    `gorm:"index"`
+    Clicks      int
 }

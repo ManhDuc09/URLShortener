@@ -2,18 +2,16 @@ package main
 
 import (
 	"log"
+	"myproject/database"
 	"myproject/handler"
 	"myproject/middleware"
-	"myproject/shortener"
 	"net/http"
 )
 
 func main() {
 
-	url1 := shortener.Shorten("https://golang.org", 1)
-	url2 := shortener.Shorten("https://example.com", 2)
-	log.Println("First URL code:", url1.ShortCode)
-	log.Println("Second URL code:", url2.ShortCode)
+	database.Connect()
+
 	http.Handle("/shorten",
 		middleware.LoggingMiddleware(
 			middleware.AuthMiddleware(

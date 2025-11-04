@@ -2,14 +2,12 @@ package shortener
 
 import (
 	"math/rand"
+	"myproject/database"
 	"myproject/models"
+	"time"
 )
 
-var (
-	urlStore = map[string]models.ShortURL{}
-	nextID   = 1
-	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-)
+const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 func generateCode(length int) string {
 	b := make([]byte, length)
@@ -21,64 +19,70 @@ func generateCode(length int) string {
 
 func Shorten(url string, userID int) models.ShortURL {
 	code := generateCode(6)
+	var existing models.ShortURL
 
 	for {
-		if _, exists := urlStore[code]; !exists {
+		result := database.DB.First(&existing, "short_code = ?", code)
+		if result.RowsAffected == 0 {
 			break
 		}
 		code = generateCode(6)
 	}
 
 	shortURL := models.ShortURL{
-		ID:          nextID,
 		OriginalURL: url,
 		ShortCode:   code,
 		UserID:      userID,
 		Clicks:      0,
 	}
 
-	urlStore[code] = shortURL
-	nextID++
+	database.DB.Create(&shortURL)
 
 	return shortURL
 }
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 func Resolve(code string) (*models.ShortURL, bool) {
-	if u, ok := urlStore[code]; ok {
-		u.Clicks++
-		urlStore[code] = u
-		return &u, true
+	var link models.ShortURL
+	result := database.DB.First(&link, "short_code = ?", code)
+	if result.RowsAffected == 0 {
+		return nil, false
 	}
-	return nil, false
+
+	link.Clicks++
+	database.DB.Save(&link)
+
+	return &link, true
 }
 
 func Delete(code string, userID int) (bool, string) {
-	u, ok := urlStore[code]
-	if !ok {
+	var link models.ShortURL
+	result := database.DB.First(&link, "short_code = ?", code)
+	if result.RowsAffected == 0 {
 		return false, "Code not found"
 	}
 
-	if u.UserID != userID {
+	if link.UserID != userID {
 		return false, "Forbidden: user does not own this URL"
 	}
 
-	delete(urlStore, code)
+	database.DB.Delete(&link)
 	return true, "Deleted successfully"
 }
 
 func GetAll() []models.ShortURL {
-	result := []models.ShortURL{}
-	for _, u := range urlStore {
-		result = append(result, u)
-	}
-	return result
+	var links []models.ShortURL
+	database.DB.Find(&links)
+	return links
 }
 
-func FindByID(id int) (*models.ShortURL, bool) {
-	for _, u := range urlStore {
-		if u.ID == id {
-			return &u, true
-		}
+func FindByID(id uint) (*models.ShortURL, bool) {
+	var link models.ShortURL
+	result := database.DB.First(&link, id)
+	if result.RowsAffected == 0 {
+		return nil, false
 	}
-	return nil, false
+	return &link, true
 }
