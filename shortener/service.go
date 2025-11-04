@@ -1,6 +1,7 @@
 package shortener
 
 import (
+	"log"
 	"math/rand"
 	"myproject/database"
 	"myproject/models"
@@ -44,6 +45,21 @@ func Shorten(url string, userID int) models.ShortURL {
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
+
+func UpdateClicksAsync(id uint) {
+	go func(id uint) {
+		log.Printf("[Goroutine] Updating click count for ID %d...", id)
+
+		var record models.ShortURL
+		if err := database.DB.First(&record, id).Error; err == nil {
+			record.Clicks++
+			database.DB.Save(&record)
+			log.Printf("[Goroutine] Updated clicks for ID %d", id)
+		} else {
+			log.Printf("[Goroutine] Failed to update clicks for ID %d: %v", id, err)
+		}
+	}(id)
+}
 func Resolve(code string) (*models.ShortURL, bool) {
 	var link models.ShortURL
 	result := database.DB.First(&link, "short_code = ?", code)
@@ -51,8 +67,7 @@ func Resolve(code string) (*models.ShortURL, bool) {
 		return nil, false
 	}
 
-	link.Clicks++
-	database.DB.Save(&link)
+	UpdateClicksAsync(link.ID)
 
 	return &link, true
 }

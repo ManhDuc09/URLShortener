@@ -28,7 +28,11 @@ func main() {
 		),
 	)
 
-	http.Handle("/", http.HandlerFunc(handler.ResolveURL))
+	http.Handle("/",
+		middleware.LoggingMiddleware(
+			http.HandlerFunc(handler.ResolveURL),
+		),
+	)
 
 	port := ":8080"
 	log.Println(" Server running on", port)
