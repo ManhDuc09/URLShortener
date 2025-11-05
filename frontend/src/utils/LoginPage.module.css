@@ -1,0 +1,84 @@
+.loginContainer {
+  height: 100vh;
+  width: 100vw;
+  background: #1a202c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 1rem; /* Thêm padding cho màn hình mobile */
+}
+
+.loginBox {
+  background: #2d3748;
+  padding: 2.5rem 2.5rem; /* Tăng padding ngang */
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  width: 100%;
+  max-width: 400px; /* Tăng max-width */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Giảm gap một chút */
+}
+
+/* Thêm: Style cho Logo */
+.logo {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #63b3ed;
+  text-decoration: none;
+  text-align: center;
+  margin-bottom: -0.5rem; /* Kéo title lên gần hơn */
+}
+
+.title {
+  /* Thay đổi: Giảm sự nổi bật của title để logo nổi hơn */
+  color: #e2e8f0; 
+  text-align: center;
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem; /* Giảm cỡ chữ */
+  font-weight: 600;
+}
+
+.input {
+  font-size: 1rem;
+}
+
+/* Thêm: Style cho icon trong input */
+.icon {
+  color: #718096; /* Màu xám nhạt */
+}
+
+/* Thêm: Style cho các link phụ */
+.extraLinks {
+  width: 100%;
+  text-align: right; /* Đẩy link "Quên MK" sang phải */
+  margin-top: -0.5rem; /* Kéo lên gần ô mật khẩu */
+}
+
+.link {
+  color: #63b3ed;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.link:hover {
+  text-decoration: underline;
+}
+
+.loginButton {
+  background: #63b3ed;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+.loginButton:hover {
+  background: #4299e1;
+}
+
+/* Thêm: Style cho link đăng ký */
+.signupLink {
+  text-align: center;
+  margin-top: 0.5rem;
+}

@@ -1,0 +1,208 @@
+/* === Reset/Global === */
+:global(*, *::before, *::after) {
+  box-sizing: border-box;
+}
+
+/* === Layout CHÍNH === */
+.adminLayout {
+  min-height: 100vh;
+}
+
+/* === Sider (Thanh bên trái) === */
+.sider {
+  background: #ffffff !important; 
+  box-shadow: 2px 0 8px rgba(0,0,0,0.05); 
+  overflow: auto;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  left: 0;
+}
+
+/* === Layout BÊN PHẢI (chứa Header + Content) === */
+.innerLayout {
+  background: #f0f2f5 !important; 
+}
+
+/* === Logo (trong Sider) === */
+.logo {
+  /* === THAY ĐỔI MÀU === */
+  color: #1890ff; /* Đậm hơn */
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 0;
+  height: 64px; 
+  line-height: 64px; 
+  background: #ffffff; 
+}
+
+/* === Header (Thanh trên cùng) === */
+.header {
+  background: #ffffff !important; 
+  display: flex;
+  justify-content: flex-end; 
+  align-items: center;
+  padding: 0 2rem; 
+  height: 64px; 
+  border-bottom: 1px solid #f0f0f0; 
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.headerRight {
+  cursor: pointer; 
+  transition: opacity 0.3s ease;
+}
+.headerRight:hover {
+  opacity: 0.8;
+}
+
+.username {
+  color: rgba(0, 0, 0, 0.85); 
+  font-weight: 500;
+  margin-left: 0.5rem; 
+}
+
+/* === Content (Khu vực nội dung chính) === */
+.content {
+  margin: 1.5rem; 
+  padding: 2rem;
+  background: #ffffff; 
+  border-radius: 12px;
+  color: rgba(0, 0, 0, 0.85); 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow-y: auto;
+  min-height: 300px;
+}
+
+/* === CSS CHO NỘI DUNG (Title, Header) === */
+.contentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap; 
+  gap: 1rem;
+}
+
+.contentTitle {
+  font-size: 2.5rem;
+  font-weight: bold;
+  /* === THAY ĐỔI MÀU === */
+  color: #1890ff; /* Đậm hơn */
+  margin: 0;
+}
+
+/* === Overrides cho Antd (Light Mode) === */
+
+/* Sider và Menu (cho theme="light") */
+/* Bạn phải đảm bảo trong file .tsx đã đổi thành theme="light" */
+:global(.ant-menu-light) {
+  background: #ffffff !important; 
+}
+:global(.ant-menu-light .ant-menu-item-selected) {
+  /* === THAY ĐỔI MÀU === */
+  color: #1890ff !important; /* Chữ màu xanh đậm */
+  background-color: #e6f7ff !important; /* Nền xanh nhạt */
+}
+:global(.ant-menu-light .ant-menu-item-selected .ant-menu-item-icon) {
+  /* === THAY ĐỔI MÀU === */
+  color: #1890ff !important; /* Icon màu xanh đậm */
+}
+:global(.ant-menu-light .ant-menu-item:hover) {
+  background-color: #f0f2f5 !important; /* Xám nhạt khi hover */
+}
+
+/* Dropdown */
+:global(.ant-dropdown-menu) {
+  background-color: #ffffff !important;
+  border: 1px solid #f0f0f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+:global(.ant-dropdown-menu-item) {
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+:global(.ant-dropdown-menu-item-icon) {
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+:global(.ant-dropdown-menu-item-danger) {
+  color: #ff4d4f !important;
+}
+:global(.ant-dropdown-menu-item:hover) {
+  background-color: #f0f2f5 !important;
+}
+
+/* Table */
+:global(.ant-table-wrapper) {
+  background-color: transparent;
+}
+:global(.ant-table) {
+  background-color: #ffffff !important;
+}
+:global(.ant-table-thead > tr > th) {
+  background-color: #fafafa !important; 
+  color: rgba(0, 0, 0, 0.85) !important; 
+  border-bottom: 1px solid #f0f0f0;
+}
+:global(.ant-table-tbody > tr > td) {
+  background-color: #ffffff !important;
+  /* === THAY ĐỔI MÀU === */
+  color: rgba(0, 0, 0, 0.85); /* Tăng độ đậm chữ (hết mờ) */
+  border-bottom: 1px solid #f0f0f0;
+}
+:global(.ant-table-tbody > tr:hover > td) {
+  background-color: #f0f2f5 !important; 
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Pagination */
+:global(.ant-pagination-item a) {
+  color: rgba(0, 0, 0, 0.85);
+}
+:global(.ant-pagination-item-active a) {
+  color: #ffffff !important; 
+}
+:global(.ant-pagination-item-active) {
+  /* === THAY ĐỔI MÀU === */
+  background-color: #1890ff !important;
+  border-color: #1890ff !important;
+}
+:global(.ant-pagination-next .ant-pagination-item-link,
+.ant-pagination-prev .ant-pagination-item-link) {
+  color: rgba(0, 0, 0, 0.85);
+}
+:global(.ant-pagination-disabled .ant-pagination-item-link) {
+  color: rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Popconfirm */
+:global(.ant-popover-inner) {
+  background-color: #ffffff !important;
+}
+:global(.ant-popover-message-title) {
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+:global(.ant-popover-arrow-content) {
+   background-color: #ffffff !important;
+}
+
+/* Modal */
+:global(.ant-modal-content) {
+  background-color: #ffffff !important;
+}
+:global(.ant-modal-header) {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+:global(.ant-modal-title) {
+  color: rgba(0, 0, 0, 0.85) !important;
+}
+:global(.ant-modal-close-icon) {
+  color: rgba(0, 0, 0, 0.45) !important;
+}
+:global(.ant-form-item-label > label) {
+  color: rgba(0, 0, 0, 0.85) !important;
+}
