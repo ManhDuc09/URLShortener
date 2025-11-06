@@ -18,11 +18,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 
-		if authHeader == "" {
-			next.ServeHTTP(w, r)
-			return
-		}
-
 		// --- Nếu có header, chúng ta MỚI tiến hành xác thực ---
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {

@@ -12,6 +12,10 @@ func main() {
 
 	database.Connect()
 
+	http.Handle("/shorten-public",
+		http.HandlerFunc(handler.ShortenURL),
+	)
+
 	http.Handle("/shorten",
 		middleware.LoggingMiddleware(
 			middleware.AuthMiddleware(
