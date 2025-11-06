@@ -8,8 +8,6 @@ import (
 	"net/http"
 )
 
-var jwtKey = []byte("my_secret_key")
-
 func Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -60,33 +58,37 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShortenURL(w http.ResponseWriter, r *http.Request) {
+	// Kiểm tra method (Giữ lại nếu bạn không dùng router)
 	if r.Method != http.MethodPost {
 		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
+	// Decode request body (Phần này đã clean)
 	var req dto.ShortenRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	// Extract UserID from context, default to 0 if not logged in
-	userID := 0
-	if ctxUserID := r.Context().Value("userID"); ctxUserID != nil {
-		userID = ctxUserID.(int)
-	}
-
-	// Đảm bảo userID là nil nếu không có giá trị hợp lệ
+	// Xử lý UserID (Clean và an toàn hơn)
 	var finalUserID *int
-	if userID != 0 {
-		finalUserID = &userID
+	// Lấy giá trị từ context
+	ctxUserID := r.Context().Value("userID")
+
+	// Kiểm tra an toàn (safe type assertion)
+	if ctxUserID != nil {
+		if userID, ok := ctxUserID.(int); ok && userID != 0 {
+			finalUserID = &userID
+		}
+		// Nếu assertion thất bại hoặc userID là 0, finalUserID vẫn là nil
 	}
 
 	log.Printf("Handler received userID: %v", finalUserID)
 
 	code := shortener.Shorten(req.URL, finalUserID)
 
+	w.Header().Set("Content-Type", "application/json") // Nên set content type
 	if err := json.NewEncoder(w).Encode(map[string]string{"short_code": code.ShortCode}); err != nil {
 		HandleError(w, http.StatusInternalServerError, "Failed to write response")
 		return
