@@ -34,6 +34,14 @@ func main() {
 		),
 	)
 
+	http.Handle("/register",
+		http.HandlerFunc(handler.Register),
+	)
+
+	http.Handle("/login",
+		http.HandlerFunc(handler.Login),
+	)
+
 	port := ":8080"
 	log.Println(" Server running on", port)
 	log.Fatal(http.ListenAndServe(port, nil))

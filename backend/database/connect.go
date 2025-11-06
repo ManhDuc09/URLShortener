@@ -37,10 +37,18 @@ func Connect() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
+	err = db.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatalf("Failed to migrate User model: %v", err)
+	}
+
 	err = db.AutoMigrate(&models.ShortURL{})
 	if err != nil {
-		log.Fatalf("Failed to migrate database: %v", err)
+		log.Fatalf("Failed to migrate ShortURL model: %v", err)
 	}
+
+	// Ensure user_id in short_urls allows NULL
+	db.Exec("ALTER TABLE short_urls ALTER COLUMN user_id DROP NOT NULL")
 
 	DB = db
 	fmt.Println("Connected to PostgreSQL and auto-migrated successfully.")
