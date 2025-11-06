@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; // Thêm useState
+import React, { useState, useEffect } from 'react';
 import { 
   Layout, 
   Menu, 
@@ -6,7 +6,6 @@ import {
   Dropdown, 
   Space, 
   Typography, 
-  // Import các component mới
   Button, 
   Table, 
   Modal, 
@@ -16,32 +15,55 @@ import {
   Popconfirm,
   message
 } from 'antd';
-import type { MenuProps, TableProps } from 'antd';
+// Sửa lỗi 1: Cần import 'MenuItemType'
+import type { MenuProps, TableProps } from 'antd'; 
 import {
   UserOutlined,
   LinkOutlined,
   LogoutOutlined,
-  PlusOutlined, // Icon cho nút "Thêm"
+  PlusOutlined, 
   EditOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
-import styles from '../utils/AdminPage.module.css'; // Đảm bảo đường dẫn đúng
+import styles from '../utils/AdminPage.module.css'; 
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography; 
 
 // Menu cho Dropdown Avatar (giữ nguyên)
-const items: MenuProps['items'] = [
+const avatarMenuItems: MenuProps['items'] = [
   {
     key: 'logout',
     icon: <LogoutOutlined />,
     label: 'Đăng xuất',
     danger: true,
-    onClick: () => { console.log('Đăng xuất...'); },
+    onClick: () => { 
+      console.log('Đăng xuất...'); 
+      localStorage.removeItem('token');
+      window.location.href = '/login'; 
+    },
   },
 ];
 
-// Định nghĩa kiểu dữ liệu cho một link
+// === SỬA LỖI 1: ĐỊNH NGHĨA MENU CHO SIDER BẰNG 'items' ===
+const siderMenuItems: MenuProps['items'] = [
+  {
+    key: 'links',
+    icon: <LinkOutlined />,
+    label: 'Quản lý link',
+  },
+];
+// === KẾT THÚC SỬA LỖI 1 ===
+
+
+// (Các interface ApiLinkData và LinkDataType giữ nguyên)
+interface ApiLinkData {
+  ID: number;
+  OriginalURL: string;
+  ShortCode: string;
+  UserID: number;
+  Clicks: number;
+}
 interface LinkDataType {
   key: string;
   id: number;
@@ -51,49 +73,89 @@ interface LinkDataType {
   created_at: string;
 }
 
-// Dữ liệu mẫu (sau này bạn sẽ thay bằng API)
-const mockData: LinkDataType[] = [
-  {
-    key: '1',
-    id: 1,
-    original_url: 'https://www.google.com/search?q=react+ant+design',
-    short_code: 'gg-antd',
-    clicks: 102,
-    created_at: '2025-11-05',
-  },
-  {
-    key: '2',
-    id: 2,
-    original_url: 'https://bycom.vn/blog/huong-dan-react',
-    short_code: 'react-tut',
-    clicks: 78,
-    created_at: '2025-11-04',
-  },
-  {
-    key: '3',
-    id: 3,
-    original_url: 'https://vtv.vn/',
-    short_code: 'vtv',
-    clicks: 15,
-    created_at: '2025-11-03',
-  },
-];
-
 const AdminPage: React.FC = () => {
-  // State cho Modal
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
   const [form] = Form.useForm();
+  const [dataSource, setDataSource] = useState<LinkDataType[]>([]);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
-  // Hàm xử lý xóa
-  const handleDelete = (key: string) => {
-    // Logic gọi API xóa ở đây
-    console.log('Xóa link có key:', key);
-    message.success('Đã xóa link thành công');
-    // Cập nhật lại data source sau khi xóa
+  // (Hàm fetchLinks giữ nguyên)
+  const fetchLinks = async (page = 1, limit = 10) => {
+    setTableLoading(true);
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      message.error('Bạn chưa đăng nhập! Đang chuyển hướng...');
+      setTableLoading(false);
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/links?page=${page}&limit=${limit}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const formattedData: LinkDataType[] = result.data.map((item: ApiLinkData) => ({
+          key: item.ID.toString(),
+          id: item.ID,
+          original_url: item.OriginalURL,
+          short_code: item.ShortCode,
+          clicks: item.Clicks,
+          created_at: '', 
+        }));
+        
+        setDataSource(formattedData);
+        setPagination({
+          current: result.page,
+          pageSize: result.limit,
+          total: formattedData.length, 
+        });
+
+      } else {
+        if (response.status === 401) {
+            message.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        } else {
+            message.error('Không thể tải dữ liệu link.');
+        }
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      message.error('Lỗi kết nối máy chủ.');
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLinks();
+  }, []); 
+
+  const handleTableChange = (newPagination: any) => {
+    fetchLinks(newPagination.current, newPagination.pageSize);
   };
   
-  // Định nghĩa các cột cho bảng
+  const handleDelete = (key: string) => {
+    console.log('Xóa link có key:', key);
+    message.success('Đã xóa link thành công');
+    // fetchLinks(pagination.current, pagination.pageSize);
+  };
+  
+  // (Định nghĩa columns giữ nguyên)
   const columns: TableProps<LinkDataType>['columns'] = [
     {
       title: 'ID',
@@ -105,7 +167,7 @@ const AdminPage: React.FC = () => {
       title: 'Link Gốc',
       dataIndex: 'original_url',
       key: 'original_url',
-      ellipsis: true, // Tự động thu gọn link dài
+      ellipsis: true, 
       render: (text) => <a href={text} target="_blank" rel="noopener noreferrer">{text}</a>,
     },
     {
@@ -119,7 +181,7 @@ const AdminPage: React.FC = () => {
       dataIndex: 'clicks',
       key: 'clicks',
       width: 120,
-      sorter: (a, b) => a.clicks - b.clicks, // Thêm chức năng sắp xếp
+      sorter: (a, b) => a.clicks - b.clicks,
     },
     {
       title: 'Hành động',
@@ -145,33 +207,31 @@ const AdminPage: React.FC = () => {
     },
   ];
   
-  // Hàm xử lý Modal
+  // (Các hàm Modal giữ nguyên)
   const showModal = (record?: LinkDataType) => {
     if (record) {
-      // Đây là trường hợp Sửa
-      form.setFieldsValue(record); // Điền dữ liệu cũ vào form
+      form.setFieldsValue(record); 
     } else {
-      // Đây là trường hợp Thêm mới
       form.resetFields();
     }
     setIsModalVisible(true);
   };
 
   const handleOk = () => {
-    setLoading(true);
+    setModalLoading(true);
     form.validateFields()
       .then(values => {
-        // Logic gọi API thêm mới/cập nhật ở đây
         console.log('Dữ liệu form:', values);
-        setTimeout(() => { // Giả lập gọi API
+        setTimeout(() => { 
           setIsModalVisible(false);
-          setLoading(false);
+          setModalLoading(false);
           message.success('Cập nhật thành công!');
+          // fetchLinks(pagination.current, pagination.pageSize);
         }, 1000);
       })
       .catch(info => {
         console.log('Validate Failed:', info);
-        setLoading(false);
+        setModalLoading(false);
       });
   };
 
@@ -188,16 +248,21 @@ const AdminPage: React.FC = () => {
         width={250}
       >
         <div className={styles.logo}>BYCOMVN</div>
-        <Menu theme="light" mode="inline" defaultSelectedKeys={['links']}>
-          <Menu.Item key="links" icon={<LinkOutlined />}>
-            Quản lý link
-          </Menu.Item>
-        </Menu>
+        
+        {/* === SỬA LỖI 1: DÙNG PROP 'items' === */}
+        <Menu 
+          theme="light" 
+          mode="inline" 
+          defaultSelectedKeys={['links']}
+          items={siderMenuItems} // <-- Sửa ở đây
+        />
+        {/* === KẾT THÚC SỬA LỖI 1 === */}
+          
       </Sider>
 
       <Layout className={styles.innerLayout}>
         <Header className={styles.header}>
-          <Dropdown menu={{ items }} trigger={['click']}>
+          <Dropdown menu={{ items: avatarMenuItems }} trigger={['click']}>
             <Space className={styles.headerRight} size="middle">
                 <Avatar icon={<UserOutlined />} />
                 <Text className={styles.username}>Admin</Text>
@@ -205,9 +270,7 @@ const AdminPage: React.FC = () => {
           </Dropdown>
         </Header>
 
-        {/* === PHẦN NỘI DUNG MỚI === */}
         <Content className={styles.content}>
-          {/* Thanh Header của Content */}
           <div className={styles.contentHeader}>
             <h1 className={styles.contentTitle}>Quản lý Link</h1>
             <Button 
@@ -220,26 +283,26 @@ const AdminPage: React.FC = () => {
             </Button>
           </div>
           
-          {/* Bảng Dữ Liệu */}
           <Table 
             columns={columns} 
-            dataSource={mockData} 
-            pagination={{ pageSize: 10 }}
-            scroll={{ x: 'max-content' }} // Hỗ trợ cuộn ngang trên mobile
+            dataSource={dataSource}       
+            loading={tableLoading}        
+            pagination={pagination}       
+            onChange={handleTableChange}  
+            scroll={{ x: 'max-content' }} 
           />
-
         </Content>
-        {/* === KẾT THÚC NỘI DUNG MỚI === */}
-
       </Layout>
 
-      {/* Modal Thêm/Sửa Link */}
       <Modal
         title={form.getFieldValue('id') ? 'Sửa Link' : 'Thêm Link Mới'}
         open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
-        confirmLoading={loading}
+        confirmLoading={modalLoading} 
+        
+        // giúp Antd không báo lỗi "not connected"
+        destroyOnClose 
       >
         <Form form={form} layout="vertical" name="link_form" style={{ marginTop: 24 }}>
           <Form.Item
@@ -258,7 +321,6 @@ const AdminPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-
     </Layout>
   );
 };
