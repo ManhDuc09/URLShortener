@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import { 
-  Input, 
   Button, 
-  Layout, 
   Space, 
   Typography, 
   Alert, 
   message, 
   Spin
 } from 'antd';
-
 import { CopyOutlined, LinkOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,7 +14,6 @@ import { useNavigate } from 'react-router-dom';
 import styles from '../utils/HomePage.module.css'; 
 
 const { Text } = Typography;
-
 
 const HomePage: React.FC = () => {
   const [url, setUrl] = useState('');
@@ -37,21 +33,20 @@ const HomePage: React.FC = () => {
     setShortenedUrl(null);
 
     try {
-      const customShortCode = Math.random().toString(36).substring(2, 9);
-
-      const response = await fetch('http://localhost:8080/links', {
+      const response = await fetch('http://localhost:8080/shorten-public', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        // (Bỏ short_code vì đây là API public)
         body: JSON.stringify({ 
-          original_url: url, 
-          short_code: customShortCode
+          URL: url, 
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
+        // Giữ nguyên logic hiển thị, nó đã đúng ý bạn
         setShortenedUrl(`http://localhost:8080/${data.short_code}`);
         setUrl(''); 
       } else {
@@ -77,7 +72,6 @@ const HomePage: React.FC = () => {
     <div className={styles.container}>
       {/* Header Section */}
       <header className={styles.header}>
-        {/* === THÊM MỘT DIV BỌC BÊN TRONG === */}
         <div className={styles.headerInner}>
           <a href="/" className={styles.logo}>Nhom 13</a>
           <nav>
@@ -93,19 +87,17 @@ const HomePage: React.FC = () => {
             <Button type="primary" style={{ backgroundColor: '#63b3ed', borderColor: '#63b3ed' }}>Bắt đầu</Button>
           </Space>
         </div>
-        {/* === KẾT THÚC DIV BỌC === */}
       </header>
 
       {/* Main Content Section */}
       <main className={styles.mainContent}>
-        {/* ... (Phần main content giữ nguyên) ... */}
         <div className={styles.leftSection}>
           <span className={styles.badge}>Rút gọn link miễn phí</span>
           <h1 className={styles.title}>Rút gọn link miễn phí</h1>
           <p className={styles.description}>
             Tạo link ngắn và truy cập với độ trễ thấp. Dữ liệu được lưu giữ vĩnh viễn.
           </p>
-          {/* ... (Phần shortenBox, termsText, error, result giữ nguyên) ... */}
+          
           <div className={styles.shortenBox}>
             <LinkOutlined style={{ color: '#718096', fontSize: '1.2rem', marginLeft: '0.5rem' }} />
             <input
@@ -143,6 +135,8 @@ const HomePage: React.FC = () => {
               className={styles.errorAlert}
             />
           )}
+
+          {/* Phần hiển thị kết quả và nút Copy (Giữ nguyên) */}
           {shortenedUrl && (
             <div className={styles.shortenedResult}>
               <Text className={styles.shortenedResultText} onClick={handleCopy}>
