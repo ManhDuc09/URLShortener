@@ -42,8 +42,9 @@ const LoginPage: React.FC = () => {
         
         // Lưu token vào localStorage để dùng cho các API khác
         localStorage.setItem('token', data.token); 
+        localStorage.setItem('username', data.user);
         
-        navigate('/admin'); // Chuyển hướng đến trang admin
+        navigate('/manager'); // Chuyển hướng đến trang admin
       } else {
         // Đăng nhập thất bại
         const errData = await response.json();
