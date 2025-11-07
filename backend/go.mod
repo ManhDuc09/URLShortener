@@ -7,7 +7,10 @@ require (
 	gorm.io/driver/postgres v1.6.0
 )
 
-require github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+require (
+	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+	github.com/rs/cors v1.11.1 // indirect
+)
 
 require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect

@@ -6,6 +6,7 @@ import (
 	"myproject/dto"
 	"myproject/shortener"
 	"net/http"
+	"strconv"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -45,13 +46,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := shortener.AuthenticateUser(req.Email, req.Password)
+	token, userName, err := shortener.AuthenticateUser(req.Email, req.Password)
 	if err != nil {
 		HandleError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(dto.LoginResponse{Token: token}); err != nil {
+	if err := json.NewEncoder(w).Encode(dto.LoginResponse{Token: token, Username: userName}); err != nil {
 		HandleError(w, http.StatusInternalServerError, "Failed to write response")
 		return
 	}
@@ -106,6 +107,19 @@ func ResolveURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteURL(w http.ResponseWriter, r *http.Request) {
+
+	ctxUserID := r.Context().Value("userID")
+	if ctxUserID == nil {
+		HandleError(w, http.StatusUnauthorized, "Token không hợp lệ (ctx rỗng)")
+		return
+	}
+
+	userID, ok := ctxUserID.(int)
+	if !ok || userID == 0 {
+		HandleError(w, http.StatusUnauthorized, "Token không hợp lệ (ctx sai kiểu)")
+		return
+	}
+
 	var req dto.DeleteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		HandleError(w, http.StatusBadRequest, "Invalid body")
@@ -117,7 +131,7 @@ func DeleteURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, msg := shortener.Delete(req.Code, req.UserID)
+	ok, msg := shortener.Delete(req.Code, userID)
 	if ok {
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write([]byte(msg)); err != nil {
@@ -130,5 +144,62 @@ func DeleteURL(w http.ResponseWriter, r *http.Request) {
 		} else {
 			HandleError(w, http.StatusForbidden, msg)
 		}
+	}
+}
+
+func GetAllLinks(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	// (Middleware đã chạy và đính userID vào đây)
+	ctxUserID := r.Context().Value("userID")
+	if ctxUserID == nil {
+		// Nếu không có token, đây là "khách" -> Chặn
+		HandleError(w, http.StatusUnauthorized, "Bạn phải đăng nhập để xem link")
+		return
+	}
+
+	userID, ok := ctxUserID.(int)
+	if !ok || userID == 0 {
+		HandleError(w, http.StatusUnauthorized, "Token không hợp lệ")
+		return
+	}
+
+	q := r.URL.Query()
+	pageStr := q.Get("page")
+	limitStr := q.Get("limit")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+
+	// (Truyền userID vào)
+	links, err := shortener.GetAllPaginatedByUser(userID, limit, offset)
+
+	if err != nil {
+		HandleError(w, http.StatusInternalServerError, "Không thể truy vấn dữ liệu")
+		return
+	}
+
+	// --- 4. Trả về response (Giữ nguyên) ---
+	response := map[string]interface{}{
+		"page":  page,
+		"limit": limit,
+		"data":  links,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		HandleError(w, http.StatusInternalServerError, "Failed to write response")
 	}
 }

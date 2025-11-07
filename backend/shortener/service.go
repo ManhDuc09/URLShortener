@@ -97,10 +97,17 @@ func Delete(code string, userID int) (bool, string) {
 	return true, "Deleted successfully"
 }
 
-func GetAll() []models.ShortURL {
+func GetAllPaginatedByUser(userID int, limit int, offset int) ([]models.ShortURL, error) {
 	var links []models.ShortURL
-	database.DB.Find(&links)
-	return links
+
+	// Thêm .Where("user_id = ?", userID) để lọc theo người dùng
+	result := database.DB.Where("user_id = ?", userID).Limit(limit).Offset(offset).Find(&links)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return links, nil
 }
 
 func FindByID(id uint) (*models.ShortURL, bool) {
@@ -134,15 +141,15 @@ func RegisterUser(name, email, password string) (*models.User, error) {
 	return user, nil
 }
 
-func AuthenticateUser(email, password string) (string, error) {
+func AuthenticateUser(email, password string) (string, string, error) {
 	var user models.User
 	result := database.DB.Where("email = ?", email).First(&user)
 	if result.Error != nil {
-		return "", errors.New("user not found")
+		return "", "", errors.New("user not found")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return "", errors.New("invalid credentials")
+		return "", "", errors.New("invalid credentials")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -151,8 +158,8 @@ func AuthenticateUser(email, password string) (string, error) {
 	})
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
-		return "", errors.New("failed to generate token")
+		return "", "", errors.New("failed to generate token")
 	}
 
-	return tokenString, nil
+	return tokenString, user.Name, nil
 }

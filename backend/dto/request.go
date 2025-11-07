@@ -17,6 +17,5 @@ type ShortenRequest struct {
 }
 
 type DeleteRequest struct {
-	Code   string `json:"code"`
-	UserID int    `json:"user_id"`
+	Code string `json:"code"`
 }
