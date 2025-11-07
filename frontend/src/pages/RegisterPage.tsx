@@ -5,6 +5,7 @@ import styles from '../utils/LoginPage.module.css'; // Dùng chung file CSS vớ
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 
 const RegisterPage: React.FC = () => {
+  const API_BASE = import.meta.env.VITE_API_URL;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,10 +28,10 @@ const RegisterPage: React.FC = () => {
     }
 
     setLoading(true);
-    
+
     try {
       // Gọi API đăng ký thật
-      const response = await fetch('http://localhost:8080/register', {
+      const response = await fetch(`${API_BASE}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,11 +73,11 @@ const RegisterPage: React.FC = () => {
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginBox}>
-        
+
         <a href="/" className={styles.logo}>link-short</a>
 
         <h2 className={styles.title}>Tạo tài khoản</h2>
-        
+
         {error && (
           <Alert
             message={error}
@@ -152,8 +153,8 @@ const RegisterPage: React.FC = () => {
         <div className={styles.signupLink}>
           <span style={{ color: '#a0aec0' }}>Đã có tài khoản? </span>
           {/* Dùng navigate thay vì <a href> */}
-          <Button 
-            type="link" 
+          <Button
+            type="link"
             className={styles.linkButton} // Dùng class mới cho đẹp hơn
             onClick={() => navigate('/login')}
           >

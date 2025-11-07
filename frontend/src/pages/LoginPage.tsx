@@ -6,6 +6,7 @@ import styles from '../utils/LoginPage.module.css';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 
 const LoginPage: React.FC = () => {
+  const API_BASE = import.meta.env.VITE_API_URL;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +24,7 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/login', {
+      const response = await fetch(`${API_BASE}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

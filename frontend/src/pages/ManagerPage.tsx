@@ -74,6 +74,7 @@ interface LinkDataType {
 }
 
 const ManagerPage: React.FC = () => {
+  const API_BASE = import.meta.env.VITE_API_URL;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [form] = Form.useForm();
@@ -103,7 +104,7 @@ const ManagerPage: React.FC = () => {
       return;
     }
     try {
-      const response = await fetch(`http://localhost:8080/links?page=${page}&limit=${limit}`, {
+      const response = await fetch(`${API_BASE}/links?page=${page}&limit=${limit}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
       });
@@ -158,7 +159,7 @@ const ManagerPage: React.FC = () => {
     }
     setTableLoading(true);
     try {
-      const response = await fetch(`http://localhost:8080/delete`, {
+      const response = await fetch(`${API_BASE}/delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ code: shortCode })
@@ -256,7 +257,7 @@ const ManagerPage: React.FC = () => {
 
         try {
           // Gọi API /shorten (bản bảo mật)
-          const response = await fetch('http://localhost:8080/shorten', {
+          const response = await fetch(`${API_BASE}/shorten`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -269,7 +270,7 @@ const ManagerPage: React.FC = () => {
 
           if (response.ok) {
             const data = await response.json();
-            const newLink = `http://localhost:8080/${data.short_code}`;
+            const newLink = `${API_BASE}/${data.short_code}`;
 
             // Hiển thị kết quả trong Modal
             setNewlyCreatedLink(newLink);

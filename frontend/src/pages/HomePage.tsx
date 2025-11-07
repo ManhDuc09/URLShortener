@@ -16,6 +16,7 @@ import styles from '../utils/HomePage.module.css';
 const { Text } = Typography;
 
 const HomePage: React.FC = () => {
+  const API_BASE = import.meta.env.VITE_API_URL;
   const [user, setUser] = useState(localStorage.getItem('username'));
 
   const [url, setUrl] = useState('');
@@ -47,8 +48,8 @@ const HomePage: React.FC = () => {
 
       // Choose the right endpoint
       const endpoint = token
-        ? 'http://localhost:8080/shorten'          // logged in
-        : 'http://localhost:8080/shorten-public';  // not logged in
+        ? `${API_BASE}/shorten`          // logged in
+        : `${API_BASE}/shorten-public`;  // not logged in
 
       // Call the API
       const response = await fetch(endpoint, {
@@ -62,7 +63,7 @@ const HomePage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setShortenedUrl(`http://localhost:8080/${data.short_code}`);
+        setShortenedUrl(`${API_BASE}/${data.short_code}`);
         setUrl('');
       } else {
         const errData = await response.json();
