@@ -16,8 +16,8 @@ func main() {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
-			"http://localhost:5173",     // local React
-			"https://your-frontend.com", // production React
+			"http://localhost:5173",                    // local React
+			"https://urlshortener-1-jboa.onrender.com", // production React
 		},
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
