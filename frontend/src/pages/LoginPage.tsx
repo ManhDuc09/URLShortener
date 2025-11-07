@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Input, Alert, Space, message } from 'antd';
+import { Button, Input, Alert, message } from 'antd';
 import styles from '../utils/LoginPage.module.css';
 // Import icon MailOutlined thay cho UserOutlined
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
