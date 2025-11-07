@@ -21,32 +21,31 @@ const LoginPage: React.FC = () => {
       setLoading(false);
       return;
     }
-    
+
     try {
-      // Gọi API thật
       const response = await fetch('http://localhost:8080/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          email: email, 
-          password: password 
+        body: JSON.stringify({
+          email: email,
+          password: password
         }),
       });
 
       if (response.ok) {
-        // Đăng nhập thành công
         const data = await response.json();
         message.success('Đăng nhập thành công!');
-        
-        // Lưu token vào localStorage để dùng cho các API khác
-        localStorage.setItem('token', data.token); 
+
+        localStorage.setItem('token', data.token);
         localStorage.setItem('username', data.user);
-        
-        navigate('/manager'); // Chuyển hướng đến trang admin
+
+        setTimeout(() => {
+          navigate('/');
+        }, 800);
+
       } else {
-        // Đăng nhập thất bại
         const errData = await response.json();
         setError(errData.message || 'Email hoặc mật khẩu không đúng!');
       }
@@ -70,10 +69,10 @@ const LoginPage: React.FC = () => {
   return (
     <div className={styles.loginContainer}>
       <div className={styles.loginBox}>
-        
+
         <a href="/" className={styles.logo}>link-short </a>
         <h2 className={styles.title}>Đăng nhập</h2>
-        
+
         {error && (
           <Alert
             message={error}
@@ -95,7 +94,7 @@ const LoginPage: React.FC = () => {
           prefix={<MailOutlined className={styles.icon} />} // Đổi Icon
           onKeyPress={handleKeyPress}
         />
-        
+
         {/* Input mật khẩu giữ nguyên */}
         <Input.Password
           className={styles.input}
@@ -127,9 +126,9 @@ const LoginPage: React.FC = () => {
 
         <div className={styles.signupLink}>
           <span style={{ color: '#a0aec0' }}>Chưa có tài khoản? </span>
-          <Button 
-            type="link" 
-            className={styles.linkButton} 
+          <Button
+            type="link"
+            className={styles.linkButton}
             onClick={() => navigate('/register')}
           >
             Đăng ký ngay

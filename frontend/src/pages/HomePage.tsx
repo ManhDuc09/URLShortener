@@ -1,26 +1,35 @@
 import React, { useState } from 'react';
-import { 
-  Button, 
-  Space, 
-  Typography, 
-  Alert, 
-  message, 
+import {
+  Button,
+  Space,
+  Typography,
+  Alert,
+  message,
   Spin
 } from 'antd';
 import { CopyOutlined, LinkOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 // Import CSS Module
-import styles from '../utils/HomePage.module.css'; 
+import styles from '../utils/HomePage.module.css';
 
 const { Text } = Typography;
 
 const HomePage: React.FC = () => {
+  const [user, setUser] = useState(localStorage.getItem('username'));
+
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shortenedUrl, setShortenedUrl] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('username');
+    localStorage.removeItem('token');
+    setUser(null);
+    message.success('Đã đăng xuất.');
+  };
 
   const handleShorten = async () => {
     if (!url) {
@@ -33,22 +42,28 @@ const HomePage: React.FC = () => {
     setShortenedUrl(null);
 
     try {
-      const response = await fetch('http://localhost:8080/shorten-public', {
+      // 🧠 Check if user is logged in
+      const token = localStorage.getItem('token');
+
+      // Choose the right endpoint
+      const endpoint = token
+        ? 'http://localhost:8080/shorten'          // logged in
+        : 'http://localhost:8080/shorten-public';  // not logged in
+
+      // Call the API
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}), // only attach if logged in
         },
-        // (Bỏ short_code vì đây là API public)
-        body: JSON.stringify({ 
-          URL: url, 
-        }),
+        body: JSON.stringify({ URL: url }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        // Giữ nguyên logic hiển thị, nó đã đúng ý bạn
         setShortenedUrl(`http://localhost:8080/${data.short_code}`);
-        setUrl(''); 
+        setUrl('');
       } else {
         const errData = await response.json();
         setError(errData.message || 'Lỗi: Không thể rút gọn link.');
@@ -74,17 +89,55 @@ const HomePage: React.FC = () => {
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <a href="/" className={styles.logo}>Nhom 13</a>
+
           <nav>
             <ul className={styles.navMenu}>
               <li className={styles.navItem}><a href="#">Bảng giá</a></li>
               <li className={styles.navItem}><a href="#">Blog</a></li>
               <li className={styles.navItem}><a href="#">Giải pháp ⌄</a></li>
               <li className={styles.navItem}><a href="#">Liên hệ</a></li>
+              <li className={styles.navItem}>
+                <a href="/manager">Quản lý</a>
+              </li>
             </ul>
           </nav>
+
           <Space className={styles.authButtons}>
-            <Button type="link" style={{ color: '#cbd5e0' }} onClick={() => navigate('/login')}>Đăng nhập</Button>
-            <Button type="primary" style={{ backgroundColor: '#63b3ed', borderColor: '#63b3ed' }}>Bắt đầu</Button>
+            {user ? (
+              <>
+                <span style={{ color: '#fff' }}>Xin chào, {user}</span>
+                <Button
+                  type="link"
+                  style={{ color: '#cbd5e0' }}
+                  onClick={() => navigate('/manager')}
+                >
+                  Quản lý
+                </Button>
+                <Button
+                  type="link"
+                  style={{ color: '#cbd5e0' }}
+                  onClick={handleLogout}
+                >
+                  Đăng xuất
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="link"
+                  style={{ color: '#cbd5e0' }}
+                  onClick={() => navigate('/login')}
+                >
+                  Đăng nhập
+                </Button>
+                <Button
+                  type="primary"
+                  style={{ backgroundColor: '#63b3ed', borderColor: '#63b3ed' }}
+                >
+                  Bắt đầu
+                </Button>
+              </>
+            )}
           </Space>
         </div>
       </header>
@@ -97,7 +150,7 @@ const HomePage: React.FC = () => {
           <p className={styles.description}>
             Tạo link ngắn và truy cập với độ trễ thấp. Dữ liệu được lưu giữ vĩnh viễn.
           </p>
-          
+
           <div className={styles.shortenBox}>
             <LinkOutlined style={{ color: '#718096', fontSize: '1.2rem', marginLeft: '0.5rem' }} />
             <input
@@ -111,9 +164,9 @@ const HomePage: React.FC = () => {
               }}
               disabled={loading}
             />
-            <button 
-              className={styles.shortenButton} 
-              onClick={handleShorten} 
+            <button
+              className={styles.shortenButton}
+              onClick={handleShorten}
               disabled={loading}
             >
               {loading ? <Spin size="small" /> : 'Rút gọn link'}
@@ -142,9 +195,9 @@ const HomePage: React.FC = () => {
               <Text className={styles.shortenedResultText} onClick={handleCopy}>
                 {shortenedUrl}
               </Text>
-              <Button 
-                icon={<CopyOutlined />} 
-                onClick={handleCopy} 
+              <Button
+                icon={<CopyOutlined />}
+                onClick={handleCopy}
                 className={styles.copyButton}
               >
                 Copy

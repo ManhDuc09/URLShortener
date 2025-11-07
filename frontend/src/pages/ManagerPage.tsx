@@ -1,34 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Layout, 
-  Menu, 
-  Avatar, 
-  Dropdown, 
-  Space, 
-  Typography, 
-  Button, 
-  Table, 
-  Modal, 
-  Form, 
+import {
+  Layout,
+  Menu,
+  Avatar,
+  Dropdown,
+  Space,
+  Typography,
+  Button,
+  Table,
+  Modal,
+  Form,
   Input,
   Tag,
   Popconfirm,
   message
 } from 'antd';
-import type { MenuProps, TableProps } from 'antd'; 
+import type { MenuProps, TableProps } from 'antd';
 import {
   UserOutlined,
   LinkOutlined,
   LogoutOutlined,
-  PlusOutlined, 
+  PlusOutlined,
   // EditOutlined, // (Xóa EditOutlined)
   DeleteOutlined,
   CopyOutlined, // (Thêm CopyOutlined)
 } from '@ant-design/icons';
-import styles from '../utils/ManagerPage.module.css'; 
+import styles from '../utils/ManagerPage.module.css';
+import { Link } from 'react-router-dom';
 
 const { Header, Sider, Content } = Layout;
-const { Text } = Typography; 
+const { Text } = Typography;
 
 // Menu cho Dropdown Avatar (giữ nguyên)
 const avatarMenuItems: MenuProps['items'] = [
@@ -37,11 +38,11 @@ const avatarMenuItems: MenuProps['items'] = [
     icon: <LogoutOutlined />,
     label: 'Đăng xuất',
     danger: true,
-    onClick: () => { 
-      console.log('Đăng xuất...'); 
+    onClick: () => {
+      console.log('Đăng xuất...');
       localStorage.removeItem('token');
       localStorage.removeItem('username');
-      window.location.href = '/login'; 
+      window.location.href = '/login';
     },
   },
 ];
@@ -84,10 +85,10 @@ const ManagerPage: React.FC = () => {
     total: 0,
   });
   const [username, setUsername] = useState<string>('');
-  
+
   // === THAY ĐỔI: Thêm state cho link mới ===
   const [newlyCreatedLink, setNewlyCreatedLink] = useState<string | null>(null);
-  
+
   const [messageApi, contextHolder] = message.useMessage();
 
   // (Hàm fetchLinks giữ nguyên)
@@ -110,19 +111,19 @@ const ManagerPage: React.FC = () => {
         const result = await response.json();
         const formattedData: LinkDataType[] = result.data.map((item: ApiLinkData) => ({
           key: item.ID.toString(), id: item.ID, original_url: item.OriginalURL,
-          short_code: item.ShortCode, clicks: item.Clicks, created_at: '', 
+          short_code: item.ShortCode, clicks: item.Clicks, created_at: '',
         }));
         setDataSource(formattedData);
         setPagination({
-          current: result.page, pageSize: result.limit, total: formattedData.length, 
+          current: result.page, pageSize: result.limit, total: formattedData.length,
         });
       } else {
         if (response.status === 401) {
-            messageApi.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
-            localStorage.removeItem('token');
-            window.location.href = '/login';
+          messageApi.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+          localStorage.removeItem('token');
+          window.location.href = '/login';
         } else {
-            messageApi.error('Không thể tải dữ liệu link.');
+          messageApi.error('Không thể tải dữ liệu link.');
         }
       }
     } catch (error) {
@@ -135,7 +136,7 @@ const ManagerPage: React.FC = () => {
 
   useEffect(() => {
     fetchLinks();
-  }, []); 
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem('username') || '';
@@ -145,7 +146,7 @@ const ManagerPage: React.FC = () => {
   const handleTableChange = (newPagination: any) => {
     fetchLinks(newPagination.current, newPagination.pageSize);
   };
-  
+
   // (Hàm handleDelete giữ nguyên)
   const handleDelete = async (shortCode: string) => {
     // ... (Giữ nguyên code handleDelete) ...
@@ -155,19 +156,19 @@ const ManagerPage: React.FC = () => {
       window.location.href = '/login';
       return;
     }
-    setTableLoading(true); 
+    setTableLoading(true);
     try {
       const response = await fetch(`http://localhost:8080/delete`, {
-        method: 'POST', 
+        method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ code: shortCode })
       });
       if (response.ok) {
         const successMessage = await response.text();
         messageApi.success(successMessage || 'Đã xóa link thành công');
-        await fetchLinks(pagination.current, pagination.pageSize); 
+        await fetchLinks(pagination.current, pagination.pageSize);
       } else {
-        setTableLoading(false); 
+        setTableLoading(false);
         if (response.status === 401) {
           messageApi.error('Phiên đăng nhập hết hạn.');
           localStorage.removeItem('token');
@@ -181,13 +182,13 @@ const ManagerPage: React.FC = () => {
         }
       }
     } catch (error) {
-      setTableLoading(false); 
+      setTableLoading(false);
       console.error('Delete error:', error);
       messageApi.error('Lỗi kết nối máy chủ.');
     }
   };
-  
-  
+
+
   // === THAY ĐỔI: Xóa nút "Sửa" ===
   const columns: TableProps<LinkDataType>['columns'] = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
@@ -195,7 +196,7 @@ const ManagerPage: React.FC = () => {
       title: 'Link Gốc',
       dataIndex: 'original_url',
       key: 'original_url',
-      ellipsis: true, 
+      ellipsis: true,
       render: (text) => <a href={text} target="_blank" rel="noopener noreferrer">{text}</a>,
     },
     {
@@ -220,7 +221,7 @@ const ManagerPage: React.FC = () => {
           {/* Nút "Sửa" đã bị xóa */}
           <Popconfirm
             title="Bạn có chắc muốn xóa link này?"
-            onConfirm={() => handleDelete(record.short_code)} 
+            onConfirm={() => handleDelete(record.short_code)}
             okText="Xóa"
             cancelText="Hủy"
           >
@@ -232,7 +233,7 @@ const ManagerPage: React.FC = () => {
       ),
     },
   ];
-  
+
   // === THAY ĐỔI: Hàm mở Modal (bỏ record) ===
   const showModal = () => {
     form.resetFields(); // Luôn reset form
@@ -269,13 +270,13 @@ const ManagerPage: React.FC = () => {
           if (response.ok) {
             const data = await response.json();
             const newLink = `http://localhost:8080/${data.short_code}`;
-            
+
             // Hiển thị kết quả trong Modal
             setNewlyCreatedLink(newLink);
             messageApi.success('Tạo link thành công!');
-            
+
             // Tải lại bảng ở background
-            fetchLinks(pagination.current, pagination.pageSize); 
+            fetchLinks(pagination.current, pagination.pageSize);
           } else {
             const errData = await response.json();
             messageApi.error(errData.message || 'Tạo link thất bại');
@@ -313,18 +314,19 @@ const ManagerPage: React.FC = () => {
   return (
     <Layout className={styles.adminLayout}>
       {contextHolder} {/* Thêm contextHolder để message hoạt động */}
-      <Sider 
-        className={styles.sider} 
-        breakpoint="lg" 
+      <Sider
+        className={styles.sider}
+        breakpoint="lg"
         collapsedWidth="0"
         width={250}
       >
-        <div className={styles.logo}>BYCOMVN</div>
-        <Menu 
-          theme="light" 
-          mode="inline" 
+        <Link to="/" className={styles.logo}>
+          HOME</Link>
+        <Menu
+          theme="light"
+          mode="inline"
           defaultSelectedKeys={['links']}
-          items={siderMenuItems} 
+          items={siderMenuItems}
         />
       </Sider>
 
@@ -332,8 +334,8 @@ const ManagerPage: React.FC = () => {
         <Header className={styles.header}>
           <Dropdown menu={{ items: avatarMenuItems }} trigger={['click']}>
             <Space className={styles.headerRight} size="middle">
-                <Avatar icon={<UserOutlined />} />
-                <Text className={styles.username}>{username || 'Admin'}</Text>
+              <Avatar icon={<UserOutlined />} />
+              <Text className={styles.username}>{username || 'Admin'}</Text>
             </Space>
           </Dropdown>
         </Header>
@@ -341,23 +343,23 @@ const ManagerPage: React.FC = () => {
         <Content className={styles.content}>
           <div className={styles.contentHeader}>
             <h1 className={styles.contentTitle}>Quản lý Link</h1>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />} 
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
               onClick={showModal} // Sửa: gọi không cần tham số
               size="large"
             >
               Thêm Link Mới
             </Button>
           </div>
-          
-          <Table 
-            columns={columns} 
-            dataSource={dataSource}       
-            loading={tableLoading}        
-            pagination={pagination}       
-            onChange={handleTableChange}  
-            scroll={{ x: 'max-content' }} 
+
+          <Table
+            columns={columns}
+            dataSource={dataSource}
+            loading={tableLoading}
+            pagination={pagination}
+            onChange={handleTableChange}
+            scroll={{ x: 'max-content' }}
           />
         </Content>
       </Layout>
@@ -367,29 +369,29 @@ const ManagerPage: React.FC = () => {
         title="Thêm Link Mới" // Chỉ 1 title
         open={isModalVisible}
         onCancel={handleCancel} // Chỉ giữ lại onCancel
-        destroyOnHidden 
-        
+        destroyOnHidden
+
         // Tùy chỉnh footer (nút bấm)
         footer={
-          !newlyCreatedLink ? 
-          // Footer khi đang điền form
-          [
-            <Button key="back" onClick={handleCancel}>
-              Hủy
-            </Button>,
-            <Button key="submit" type="primary" loading={modalLoading} onClick={handleOk}>
-              Rút gọn
-            </Button>,
-          ] : 
-          // Footer khi đã có kết quả
-          [
-            <Button key="copy" type="primary" icon={<CopyOutlined />} onClick={handleModalCopy}>
-              Sao chép
-            </Button>,
-            <Button key="close" onClick={handleCancel}>
-              Đóng
-            </Button>,
-          ]
+          !newlyCreatedLink ?
+            // Footer khi đang điền form
+            [
+              <Button key="back" onClick={handleCancel}>
+                Hủy
+              </Button>,
+              <Button key="submit" type="primary" loading={modalLoading} onClick={handleOk}>
+                Rút gọn
+              </Button>,
+            ] :
+            // Footer khi đã có kết quả
+            [
+              <Button key="copy" type="primary" icon={<CopyOutlined />} onClick={handleModalCopy}>
+                Sao chép
+              </Button>,
+              <Button key="close" onClick={handleCancel}>
+                Đóng
+              </Button>,
+            ]
         }
       >
         {/* Dùng ternary để hiển thị Form hoặc Kết quả */}
