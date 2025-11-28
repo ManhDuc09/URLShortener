@@ -1,3 +1,23 @@
+// @title URL Shortener API
+// @version 1.0
+// @description API documentation cho URL Shortener service
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+
 package main
 
 import (
@@ -6,9 +26,12 @@ import (
 	"myproject/handler"
 	"myproject/middleware"
 	"net/http"
-	"os" // 👈 Add this import
+	"os"
+
+	_ "myproject/docs" // Swagger docs
 
 	"github.com/rs/cors"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -24,6 +47,13 @@ func main() {
 		AllowCredentials: true,
 	})
 
+	http.Handle("/swagger/", httpSwagger.WrapHandler)
+
+	// Auth routes
+	http.Handle("/register", http.HandlerFunc(handler.Register))
+	http.Handle("/login", http.HandlerFunc(handler.Login))
+
+	// Shortener routes
 	http.Handle("/shorten-public", http.HandlerFunc(handler.ShortenURL))
 	http.Handle("/shorten", middleware.LoggingMiddleware(
 		middleware.AuthMiddleware(http.HandlerFunc(handler.ShortenURL)),
@@ -34,11 +64,10 @@ func main() {
 	http.Handle("/delete", middleware.LoggingMiddleware(
 		middleware.AuthMiddleware(http.HandlerFunc(handler.DeleteURL)),
 	))
-	http.Handle("/", middleware.LoggingMiddleware(http.HandlerFunc(handler.ResolveURL)))
-	http.Handle("/register", http.HandlerFunc(handler.Register))
-	http.Handle("/login", http.HandlerFunc(handler.Login))
 
-	handler := c.Handler(http.DefaultServeMux)
+	http.Handle("/", middleware.LoggingMiddleware(http.HandlerFunc(handler.ResolveURL)))
+
+	srv := c.Handler(http.DefaultServeMux)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -46,6 +75,6 @@ func main() {
 	}
 
 	log.Println(" Server running on port:", port)
-	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, handler))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, srv))
 
 }

@@ -9,6 +9,17 @@ import (
 	"strconv"
 )
 
+// Register godoc
+// @Summary Register a new user
+// @Description Create a new user account
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.RegisterRequest true "User registration info"
+// @Success 201 {object} map[string]string
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /register [post]
 func Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -34,6 +45,17 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Authenticate user and return JWT token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Login credentials"
+// @Success 200 {object} dto.LoginResponse
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /login [post]
 func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -58,6 +80,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ShortenURL godoc
+// @Summary Shorten a URL
+// @Description Create a short URL (can be anonymous or authenticated)
+// @Tags shortener
+// @Accept json
+// @Produce json
+// @Param request body dto.ShortenRequest true "URL to shorten"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]interface{}
+// @Router /shorten-public [post]
 func ShortenURL(w http.ResponseWriter, r *http.Request) {
 	// Kiểm tra method (Giữ lại nếu bạn không dùng router)
 	if r.Method != http.MethodPost {
@@ -96,6 +128,14 @@ func ShortenURL(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ResolveURL godoc
+// @Summary Resolve short code to original URL
+// @Description Redirect to original URL and increment click counter
+// @Tags shortener
+// @Param code path string true "Short code"
+// @Success 302 "Redirect to original URL"
+// @Failure 404 {object} map[string]interface{}
+// @Router /{code} [get]
 func ResolveURL(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Path[1:]
 	url, ok := shortener.Resolve(code)
@@ -106,6 +146,21 @@ func ResolveURL(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url.OriginalURL, http.StatusFound)
 }
 
+// DeleteURL godoc
+// @Summary Delete a short URL
+// @Description Delete a short URL (only owner can delete)
+// @Tags shortener
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param request body dto.DeleteRequest true "Short code to delete"
+// @Success 200 {string} string
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 403 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Router /delete [post]
+// @Security BearerAuth
 func DeleteURL(w http.ResponseWriter, r *http.Request) {
 
 	ctxUserID := r.Context().Value("userID")
@@ -147,6 +202,19 @@ func DeleteURL(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetAllLinks godoc
+// @Summary Get all user's links
+// @Description Get paginated list of user's short URLs
+// @Tags shortener
+// @Produce json
+// @Param Authorization header string true "Bearer token"
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /links [get]
+// @Security BearerAuth
 func GetAllLinks(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		HandleError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -190,7 +258,6 @@ func GetAllLinks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- 4. Trả về response (Giữ nguyên) ---
 	response := map[string]interface{}{
 		"page":  page,
 		"limit": limit,

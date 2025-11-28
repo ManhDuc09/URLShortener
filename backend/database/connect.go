@@ -42,5 +42,4 @@ func Connect() {
 	}
 
 	DB = db
-	log.Println(" Connected to PostgreSQL successfully")
 }
