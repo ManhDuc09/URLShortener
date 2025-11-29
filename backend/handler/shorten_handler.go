@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"log"
+	"math"
 	"myproject/dto"
 	"myproject/shortener"
 	"net/http"
@@ -269,4 +270,45 @@ func GetAllLinks(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		HandleError(w, http.StatusInternalServerError, "Failed to write response")
 	}
+}
+
+func SearchLinksHandler(w http.ResponseWriter, r *http.Request) {
+
+	query := r.URL.Query()
+	q := query.Get("q")
+	pageStr := query.Get("page")
+
+	if q == "" {
+		http.Error(w, "Tham số 'q' là bắt buộc", http.StatusBadRequest)
+		return
+	}
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	limit := 5
+	offset := (page - 1) * limit
+	links, total, err := shortener.SearchLinks(q, limit, offset)
+
+	if err != nil {
+		http.Error(w, "Lỗi Server: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	lastPage := int(math.Ceil(float64(total) / float64(limit)))
+	if lastPage < 1 && total == 0 {
+		lastPage = 1
+	}
+
+	resp := map[string]interface{}{
+		"data":      links,
+		"total":     total,
+		"page":      page,
+		"last_page": lastPage,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }

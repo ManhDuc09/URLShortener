@@ -163,3 +163,23 @@ func AuthenticateUser(email, password string) (string, string, error) {
 
 	return tokenString, user.Name, nil
 }
+
+func SearchLinks(q string, limit int, offset int) ([]models.ShortURL, int64, error) {
+	var links []models.ShortURL
+	var total int64
+
+	searchCondition := "%" + q + "%"
+
+	err := database.DB.Model(&models.ShortURL{}).Where("original_url LIKE ?", searchCondition).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	result := database.DB.Where("original_url LIKE ?", searchCondition).Limit(limit).Offset(offset).Find(&links)
+
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+
+	return links, total, nil
+}

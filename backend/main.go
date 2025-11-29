@@ -53,6 +53,8 @@ func main() {
 	http.Handle("/register", http.HandlerFunc(handler.Register))
 	http.Handle("/login", http.HandlerFunc(handler.Login))
 
+	http.Handle("/links/search", http.HandlerFunc(handler.SearchLinksHandler))
+
 	// Shortener routes
 	http.Handle("/shorten-public", http.HandlerFunc(handler.ShortenURL))
 	http.Handle("/shorten", middleware.LoggingMiddleware(
